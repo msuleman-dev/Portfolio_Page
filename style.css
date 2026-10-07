@@ -20,3 +20,44 @@
 @media(max-width:1000px){.hero h1{font-size:clamp(48px,6.5vw,68px)}.hero-grid{gap:28px;min-height:auto}.hero-visual{height:390px}.project-grid{gap:28px}.about-grid{gap:40px}.visual-caption{font-size:12px;letter-spacing:0}.project-row{grid-template-columns:1fr 1.5fr 24px}}
 @media(max-width:700px){.hero-grid{grid-template-columns:1fr;padding:28px 0;gap:26px}.hero-copy{padding:0}.hero h1{font-size:clamp(54px,11.5vw,78px)}.hero-visual{height:340px;margin:0}.hero-copy p{max-width:440px}.hero-top .eyebrow{max-width:100%;line-height:1.6}.hero-bottom{align-items:center}.skills-belt{padding-top:18px;padding-bottom:18px;gap:12px;flex-wrap:wrap}.belt-label{flex:1 1 calc(100% - 60px)}.belt-label>span{display:inline;margin-left:12px}.belt-toggle{order:0;flex:0 0 40px;height:40px}.belt-window{order:1;flex:1 1 100%;margin-top:2px}.ticker-group>span{font-size:14px;padding:9px 17px}.section-intro{display:block}.section-intro>p{margin-top:20px;max-width:330px}.project-grid{grid-template-columns:1fr;gap:36px}.inferni{grid-template-columns:1fr}.inferni .project-image{min-height:0;height:auto;aspect-ratio:1.65}.inferni-copy{padding:24px}.about-grid{grid-template-columns:1fr;gap:40px}.project-row{grid-template-columns:1fr 24px}.project-row>span{display:none}.project-row p{grid-column:1;grid-row:2}.project-row b{grid-column:2;grid-row:1}.skill-grid{grid-template-columns:1fr}.skill:nth-child(n){padding:28px 0;border-left:0}.header nav{gap:14px}.location{display:none}}
 @media(prefers-reduced-motion:reduce){.belt-track{animation:none}.belt-window{overflow:auto;mask-image:none}.ticker-group[aria-hidden]{display:none}.belt-toggle{display:none}.skills-belt:hover .belt-track{animation:none}}
+
+/* Four balanced project cards, with a systems cover for Alien Invasion. */
+.project-grid .project-image{height:auto;min-height:0;aspect-ratio:1.65;flex-shrink:0}
+.project-grid>.inferni{grid-column:auto;display:flex;flex-direction:column;background:transparent;gap:0}
+.project-grid>.inferni .project-image{height:auto;min-height:0;aspect-ratio:1.65}
+.project-grid>.inferni .inferni-copy{padding:0;display:flex;flex:1;flex-direction:column}
+.project-grid>.inferni .project-heading{margin:22px 0 12px}
+.project-grid>.inferni .chips{margin-top:auto;padding-top:20px}
+.project .project-detail{margin-top:12px}
+.project-links{display:flex;flex-wrap:wrap;gap:12px 24px;margin-top:18px;font-size:14px;color:var(--lime)}
+.project-links a{border-bottom:1px solid #d0f56850;transition:color .2s,border-color .2s}
+.project-links a:hover{color:var(--text);border-color:var(--text)}
+.alien-image{background:linear-gradient(135deg,#243032,#171c26 60%,#2d2141)}
+.alien-image:before{content:'';position:absolute;inset:0;background-image:linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:28px 28px}
+.alien-cover{position:absolute;inset:72px 28px 24px;display:flex;flex-direction:column;justify-content:center;gap:14px;transition:transform .5s}
+.alien-image:hover .alien-cover{transform:translateY(-4px)}
+.cover-kicker{font-size:11px;letter-spacing:2px;color:var(--muted)}
+.alien-cover strong{font:500 clamp(36px,4.5vw,60px)/1 var(--display);letter-spacing:-2px}
+.alien-cover em{color:var(--lime)}
+.system-tags{display:flex;flex-wrap:wrap;gap:6px;padding-right:45px}
+.system-tags>span{font-size:10px;letter-spacing:.7px;padding:4px 7px;border:1px solid #8daa9650;color:#c0d3c7}
+.cv-link{display:inline-flex;gap:26px;align-items:center;border:1px solid var(--violet);padding:12px 18px;color:var(--text);font-size:14px;margin-bottom:28px;transition:background .2s}
+.cv-link:hover{background:#a280ff20}
+@media(max-width:700px){.alien-cover{inset:64px 22px 20px;gap:10px}.alien-cover strong{font-size:clamp(34px,8vw,58px)}.system-tags>span{font-size:9px;padding:3px 6px}}
+@media(max-width:420px){.alien-cover{inset:58px 20px 18px;gap:8px}.alien-cover strong{font-size:32px}.alien-cover .cover-kicker,.alien-cover .system-tags{display:none}.alien-image .image-label{font-size:10px;letter-spacing:1px;padding:6px 8px;left:16px;top:16px}}
+
+/* Soft arrivals and restrained movement keep the focus on the work. */
+.js-motion .reveal{opacity:0;transform:translate3d(0,22px,0);transition:opacity .85s cubic-bezier(.22,1,.36,1),transform .85s cubic-bezier(.22,1,.36,1);transition-delay:var(--reveal-delay,0ms)}
+.js-motion .reveal.visible{opacity:1;transform:translate3d(0,0,0)}
+.button{transition:transform .4s cubic-bezier(.22,1,.36,1),box-shadow .4s}
+.button>span{transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.button:hover{transform:translateY(-3px);box-shadow:0 10px 36px #d0f56824}
+.button:hover>span{transform:translate(3px,-2px)}
+.project-image img{transition:transform .9s cubic-bezier(.22,1,.36,1),filter .7s}
+.image-arrow{transition:transform .5s cubic-bezier(.22,1,.36,1),box-shadow .5s}
+.project-image:hover .image-arrow{transform:translate(2px,-2px);box-shadow:0 6px 24px #d0f56830}
+.belt-track{animation-duration:42s;will-change:transform}
+.alien-cover{transition:transform .65s cubic-bezier(.22,1,.36,1)}
+.hero-visual{transition:border-color .5s,box-shadow .5s}
+.hero-visual:hover{border-color:#a280ff65;box-shadow:0 0 48px #a280ff0a}
+@media(prefers-reduced-motion:reduce){.js-motion .reveal{opacity:1;transform:none;transition:none}.belt-track{will-change:auto}.button:hover,.button:hover>span,.project-image:hover .image-arrow,.alien-image:hover .alien-cover{transform:none}.project-image:hover img{transform:none}}
