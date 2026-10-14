@@ -100,7 +100,8 @@ function animateRail(now) {
     momentum *= Math.exp(-dt * 5);
     if (Math.abs(momentum) < 1) momentum = 0;
     const max = maxRail();
-    if (max > 0) {
+    // Leave native smooth navigation alone when there is no animation velocity.
+    if (max > 0 && (railSpeed > .05 || momentum !== 0)) {
       const value = rail.scrollLeft + (railSpeed * railDirection + momentum) * dt;
       rail.scrollLeft = clamp(value, 0, max);
       if (value >= max) { railDirection = -1; momentum = 0; }
@@ -126,7 +127,7 @@ rail.addEventListener('pointerenter', event => { if (event.pointerType === 'mous
 rail.addEventListener('pointerleave', () => { railHover = false; });
 rail.addEventListener('scroll', railState, { passive: true });
 rail.addEventListener('wheel', event => {
-  if (Math.abs(event.deltaX) > Math.abs(event.deltaY) || event.shiftKey) { manualUntil = performance.now() + 8000; momentum = 0; }
+  if (Math.abs(event.deltaX) > Math.abs(event.deltaY) || event.shiftKey) { manualUntil = performance.now() + 8000; momentum = railSpeed = 0; }
 }, { passive: true });
 rail.querySelectorAll('a, img').forEach(element => { element.draggable = false; });
 rail.addEventListener('dragstart', event => event.preventDefault());
