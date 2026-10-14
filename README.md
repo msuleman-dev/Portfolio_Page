@@ -1,29 +1,26 @@
-# Muhammad Suleman — Game Developer Portfolio
+# Muhammad Suleman — Game Developer
 
-Responsive portfolio built with HTML, CSS, and JavaScript.
+Portfolio: https://msuleman-dev.github.io/Portfolio_Page/
 
-## GitHub Pages
+Static HTML, CSS, and JavaScript, deployed from the root of `main` with GitHub Pages.
 
-In Settings → Pages, choose **Deploy from a branch**, select **main** and **/ (root)**, then Save.
+## Design and motion
 
-Website address after Pages is enabled: https://msuleman-dev.github.io/Portfolio_Page/
+- Ink, lavender, warm paper, and lime palette; large editorial typography and layered real project artwork.
+- Lenis eases desktop wheel scrolling. GSAP and ScrollTrigger coordinate masked headings, staggered entrances, scroll-linked word highlights, hero departure, and image parallax.
+- Project rail supports mouse drag with inertia, native touch swipe, previous/next buttons, and Arrow/Home/End keys when focused. Dragging suppresses accidental link opening.
+- Optional cursor label, subtle artwork tilt, and magnetic primary buttons.
+- Motion toggle and system reduced-motion preference disable optional motion. Touch scrolling stays native. Content and links remain available if JavaScript or an animation dependency fails.
+- Expanded contributions use native details/summary controls. CV and project URLs are preserved.
 
 ## Files
 
-- `index.html` — page content
-- `style.css` — layout, styling, and transitions
-- `script.js` — interactive geometry, project dragging, pointer effects, navigation, and motion controls
-- `assets/` — official game promotional artwork
+- `index.html`: content and semantic structure
+- `style.css`: responsive visual design
+- `script.js`: interactions, navigation, and animation orchestration
+- `assets/`: project artwork and CV
+- `assets/vendor/`: locally served GSAP 3.13.0, ScrollTrigger 3.13.0, and Lenis 1.3.11, installed from npm
 
-Game artwork belongs to its respective owners and is included to illustrate portfolio projects.
+Vendor license notices are preserved in the distributed files. See `GSAP-README.md` and `LENIS-LICENSE` alongside them. GSAP license: https://gsap.com/standard-license/. Artwork belongs to its respective owners and illustrates the developer’s project contributions.
 
-## Interaction and accessibility
-
-- Cyan and coral accents on a deep navy palette.
-- Drag the hero geometry with a mouse, or focus it and use arrow keys. The reset control restores its initial rotation.
-- Drag the project strip with a mouse, swipe it on touch devices, or use the previous/next controls. Arrow keys, Home, and End also work while the strip is focused.
-- Project movement pauses on hover or keyboard focus and has an explicit pause control. Dragging suppresses accidental link activation.
-- Automatic movement and pointer effects respect reduced-motion settings. Animations pause off-screen and when the browser tab is hidden.
-- Native scrolling, links, and the CV download remain available without JavaScript.
-
-No animation libraries or WebGL support are required. Serve the repository root with any static HTTP server for development.
+Serve this directory with any static HTTP server for development. There is no build step. The animation dependencies are served locally; Google Fonts has system-font fallbacks.
