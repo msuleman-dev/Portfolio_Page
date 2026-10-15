@@ -51,81 +51,15 @@
     $$('main>section[id]').forEach(section => navObserver.observe(section));
   }
 
-  // Native horizontal scrolling: mouse inertia, touch swipe, keyboard, and buttons.
-  const rail = $('.project-rail'), cards = $$('.project'), prev = $('.rail-prev'), next = $('.rail-next');
-  let drag = null, velocity = 0, inertiaFrame = 0, lastFrame = 0, blockClickUntil = 0;
-  const railMax = () => Math.max(0, rail.scrollWidth - rail.clientWidth);
-  function railProgress() {
-    const max = railMax(), viewport = rail.clientWidth / Math.max(1, rail.scrollWidth);
-    $('.rail-position').style.setProperty('--rail-progress', viewport + (1 - viewport) * (max ? rail.scrollLeft / max : 0));
-    prev.disabled = rail.scrollLeft < 2; next.disabled = rail.scrollLeft > max - 2;
-  }
-  function stopInertia() { cancelAnimationFrame(inertiaFrame); inertiaFrame = 0; velocity = 0; }
-  function coast(t) {
-    const dt = Math.min((t - lastFrame) / 1000, .032); lastFrame = t;
-    velocity *= Math.exp(-dt * 5);
-    const before = rail.scrollLeft;
-    rail.scrollLeft += velocity * dt;
-    if (Math.abs(velocity) > 8 && Math.abs(before - rail.scrollLeft) > .05) inertiaFrame = requestAnimationFrame(coast);
-    else stopInertia();
-  }
-  rail.addEventListener('pointerdown', e => {
-    if (e.pointerType !== 'mouse' || e.button !== 0 || e.target.closest('summary,button')) return;
-    stopInertia(); blockClickUntil = 0;
-    drag = { id: e.pointerId, start: e.clientX, last: e.clientX, time: e.timeStamp, moved: false };
+  const rail = $('.project-rail');
+  const railController = window.createProjectRail({
+    rail, prev: $('.rail-prev'), next: $('.rail-next'), pause: $('.rail-pause'),
+    onVerticalWheel: delta => {
+      if (lenis) lenis.scrollTo(lenis.targetScroll + delta, { programmatic: false });
+      else window.scrollBy({ top: delta, behavior: 'auto' });
+    },
+    onLayout: () => ScrollTrigger?.refresh()
   });
-  rail.addEventListener('pointermove', e => {
-    if (!drag || drag.id !== e.pointerId) return;
-    const dx = e.clientX - drag.last, dt = Math.max(1, e.timeStamp - drag.time);
-    if (Math.abs(e.clientX - drag.start) > 6) {
-      if (!drag.moved) { rail.setPointerCapture(e.pointerId); rail.classList.add('is-dragging'); }
-      drag.moved = true; rail.scrollLeft -= dx;
-      velocity = Math.max(-1800, Math.min(1800, -dx / dt * 1000));
-    }
-    drag.last = e.clientX; drag.time = e.timeStamp;
-  });
-  function release(e) {
-    if (!drag) return;
-    const ended = drag, moved = ended.moved;
-    drag = null;
-    if (rail.hasPointerCapture?.(ended.id)) rail.releasePointerCapture(ended.id);
-    if (e.timeStamp - ended.time > 100) velocity = 0;
-    rail.classList.remove('is-dragging');
-    if (moved) {
-      blockClickUntil = performance.now() + 300;
-      if (motionAllowed() && e.type !== 'pointercancel') { lastFrame = performance.now(); inertiaFrame = requestAnimationFrame(coast); }
-    }
-  }
-  rail.addEventListener('pointerup', release); rail.addEventListener('pointercancel', release);
-  rail.addEventListener('lostpointercapture', e => { if (drag) release(e); });
-  rail.addEventListener('click', e => { if (e.detail !== 0 && performance.now() < blockClickUntil) { e.preventDefault(); e.stopPropagation(); } }, true);
-  rail.addEventListener('dragstart', e => e.preventDefault());
-  rail.addEventListener('wheel', e => {
-    stopInertia();
-    // Let vertical wheel input continue through Lenis, horizontal gestures stay native.
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      e.preventDefault();
-      if (lenis) lenis.scrollTo(lenis.targetScroll + e.deltaY, { programmatic: false });
-      else window.scrollBy({ top: e.deltaY, behavior: 'auto' });
-    }
-  }, { passive: false });
-  function goToProject(direction) {
-    stopInertia();
-    const step = cards[1].offsetLeft - cards[0].offsetLeft;
-    rail.scrollTo({ left: Math.max(0, Math.min(railMax(), rail.scrollLeft + direction * step)), behavior: motionAllowed() ? 'smooth' : 'auto' });
-  }
-  prev.addEventListener('click', () => goToProject(-1)); next.addEventListener('click', () => goToProject(1));
-  rail.addEventListener('keydown', e => {
-    if (e.target !== rail) return;
-    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-      e.preventDefault(); stopInertia();
-      if (e.key.startsWith('Arrow')) goToProject(e.key === 'ArrowRight' ? 1 : -1);
-      else rail.scrollTo({ left: e.key === 'Home' ? 0 : railMax(), behavior: motionAllowed() ? 'smooth' : 'auto' });
-    }
-  });
-  rail.addEventListener('scroll', railProgress, { passive: true });
-  addEventListener('resize', railProgress); addEventListener('load', railProgress); railProgress();
-  $$('.project-notes').forEach(d => d.addEventListener('toggle', () => ScrollTrigger?.refresh()));
   const belt = $('.skills-belt'), beltButton = $('.belt-toggle');
   beltButton.addEventListener('click', () => {
     const paused = belt.classList.toggle('is-paused');
@@ -151,11 +85,13 @@
     cleanups.splice(0).forEach(fn => fn());
     motionContext?.revert(); motionContext = null;
     if (tick && gsap) gsap.ticker.remove(tick);
-    lenis?.destroy(); lenis = null; stopInertia();
+    lenis?.destroy(); lenis = null;
     const active = motionAllowed();
+    railController.configure(active && fine.matches);
     document.body.classList.toggle('motion-paused', !active);
     motionButton.setAttribute('aria-pressed', String(!active));
-    motionButton.setAttribute('aria-label', active ? 'Pause animations' : 'Resume animations');
+    motionButton.setAttribute('aria-label', reduced.matches ? 'Animations reduced by system preference' : active ? 'Pause animations' : 'Resume animations');
+    motionButton.disabled = reduced.matches;
     $('span', motionButton).textContent = active ? 'on' : 'off';
     if (!active || !gsap || !ScrollTrigger) return;
     gsap.registerPlugin(ScrollTrigger);
@@ -171,7 +107,6 @@
         gsap.from('.hero-top,.hero-copy>p,.hero-actions,.hero-bottom', { y: 28, opacity: 0, duration: 1.15, stagger: .1, delay: .3, ease: 'power3.out' });
         gsap.from('.gallery-back', { y: 90, rotation: -23, opacity: 0, duration: 1.65, ease: 'expo.out', delay: .2 });
         gsap.from('.gallery-front', { y: 110, rotation: 17, opacity: 0, duration: 1.65, ease: 'expo.out', delay: .4 });
-        gsap.from('.gallery-sticker,.gallery-note', { scale: .7, opacity: 0, duration: 1.2, stagger: .1, delay: .7, ease: 'expo.out' });
       }
       gsap.to('.hero-copy', { y: -65, opacity: .2, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom 10%', scrub: .7 } });
       gsap.to('.hero-gallery', { y: 65, rotation: 3, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 1 } });
@@ -183,7 +118,7 @@
       });
       $$('h2').forEach(h => gsap.from($$('.heading-line>span', h), { yPercent: 108, rotation: 2, duration: 1.4, stagger: .13, ease: 'expo.out', scrollTrigger: { trigger: h, start: 'top 91%', once: true } }));
       // Move the track entrance as one layer so every off-screen card stays available.
-      gsap.from('.project-grid', { x: 100, opacity: 0, duration: 1.5, ease: 'expo.out', scrollTrigger: { trigger: rail, start: 'top 88%', once: true } });
+      gsap.from(rail, { y: 40, opacity: 0, duration: 1.5, ease: 'expo.out', scrollTrigger: { trigger: rail, start: 'top 88%', once: true } });
       $$('.project-image img').forEach(img => gsap.fromTo(img, { yPercent: -5 }, { yPercent: 5, ease: 'none', scrollTrigger: { trigger: rail, start: 'top bottom', end: 'bottom top', scrub: 1 } }));
       $$('.job').forEach(job => ScrollTrigger.create({ trigger: job, start: 'top 70%', toggleClass: 'is-active' }));
       gsap.from('.contact .button,.contact .email,.contact-bottom', { y: 35, opacity: 0, duration: 1.2, stagger: .12, ease: 'expo.out', scrollTrigger: { trigger: '.contact', start: 'top 68%', once: true } });
@@ -201,7 +136,7 @@
           const ry = gsap.quickTo(image, 'rotationY', { duration: .7, ease: 'power3' });
           gsap.set(image, { transformPerspective: 1000 });
           listen(image, 'pointermove', e => {
-            if (drag?.moved) return;
+            if (rail.classList.contains('is-dragging')) return;
             const r = image.getBoundingClientRect(); rx(-(e.clientY - r.top - r.height / 2) / r.height * 5); ry((e.clientX - r.left - r.width / 2) / r.width * 5);
           });
           listen(image, 'pointerleave', () => { rx(0); ry(0); });
@@ -212,7 +147,7 @@
         const py = gsap.quickTo(pill, 'y', { duration: .35, ease: 'power3' });
         listen(rail, 'pointermove', e => {
           px(e.clientX); py(e.clientY);
-          gsap.to(pill, { opacity: e.target.closest('summary,.project-links') ? 0 : 1, scale: drag?.moved ? .85 : 1, duration: .25, overwrite: true });
+          gsap.to(pill, { opacity: e.target.closest('summary,.project-links') ? 0 : 1, scale: rail.classList.contains('is-dragging') ? .85 : 1, duration: .25, overwrite: true });
         });
         listen(rail, 'pointerleave', () => gsap.to(pill, { opacity: 0, duration: .2 }));
       }
@@ -226,7 +161,7 @@
   });
   reduced.addEventListener('change', configureMotion); fine.addEventListener('change', configureMotion);
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { stopInertia(); lenis?.stop(); document.body.classList.add('motion-paused'); }
+    if (document.hidden) { lenis?.stop(); document.body.classList.add('motion-paused'); }
     else { lenis?.start(); document.body.classList.toggle('motion-paused', !motionAllowed()); }
   });
   configureMotion();
